@@ -1,0 +1,5 @@
+{
+  "name": "Cluster Gravity Graph",
+  "description": "A D3.js force-directed graph visualizing 5 distinct color groups with cluster-based gravity and dynamic labeling.",
+  "requestFramePermissions": []
+}
