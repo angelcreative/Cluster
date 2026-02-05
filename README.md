@@ -9,7 +9,7 @@ It renders a force-directed graph with deterministic clustering, gravity-based p
 
 Use this section if you just want to **get it running correctly**.
 
-### Minimal Working Example
+### Minimal Working Example 
 
 ```tsx
 import { useEffect, useState } from "react";
