@@ -1,24 +1,24 @@
 export const COLORS = [
-  '#FF7C5B', // 1. Signal
-  '#A2AD87', // 2. Growth
-  '#B4A598', // 3. Ground
-  '#DEA622', // 4. Pulse
-  '#A1B0BD', // 5. Measure
-  '#77A9E1', // 6. Info
-  '#C8979E', // 7. Vintage Wine
-  '#8DB49C', // 8. Seafoam Mist
-  '#E6DCDB', // 9. Primary 100
-  '#544342', // 10. Primary 700
-  '#716D69', // 11. Zeus 500
-  '#D23402', // 12. White 500 (Orange)
-  '#643A00', // 13. Pulse 700
-  '#232F38', // 14. Green 800
-  '#847160', // 15. Killarney 500
-  '#AC5333', // 16. Terracotta 500
-  '#827263', // 17. Desert Sand 500
-  '#7F8F96', // 18. Stormy Sky 400
-  '#8E6400', // 19. Wild Mustard 500
-  '#5B0800', // 20. Iron Rust 800
+  '#8e8de5', // 1. Blueberry 400
+  '#7faffa', // 2. Ocean 400
+  '#92c9c2', // 3. Aquamarine 400
+  '#f29e77', // 4. Orange 400
+  '#8cbddb', // 5. Indigo 400
+  '#f3c880', // 6. Mango 400
+  '#f17bb7', // 7. Pink 400
+  '#d2779b', // 8. Magenta 400
+  '#b878f8', // 9. Purple 400
+  '#ad97f9', // 10. Violet 400
+  '#7ed7de', // 11. Turquoise 400
+  '#90d0ab', // 12. Teal 400
+  '#9dea8d', // 13. Green 400
+  '#d5f389', // 14. Lime 400
+  '#fae08a', // 15. Yellow 400
+  '#f1867f', // 16. Red 400
+  '#da797f', // 17. Tomato 400
+  '#FB876A', // 18. Pomegranate 400
+  '#cb998b', // 19. Brown 400
+  '#9c706f', // 20. Cacao 400
 ];
 
 export const GROUP_LABELS = [

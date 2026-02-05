@@ -1,205 +1,397 @@
 # Cluster Gravity Graph
 
-A high-performance, interactive data visualization utilizing **React 19**, **TypeScript**, and **D3.js (v7)** to render a force-directed graph with complex clustering logic, gravity physics, and fluid UI animations.
+A high-performance, interactive data visualization built with **React 19**, **TypeScript**, and **D3.js (v7)**.  
+It renders a force-directed graph with deterministic clustering, gravity-based physics, and smooth UI transitions designed for dense datasets.
+
+---
+
+## 🔴 Quick Integration Guide (TL;DR)
+
+Use this section if you just want to **get it running correctly**.
+
+### Minimal Working Example
+
+```tsx
+import { useEffect, useState } from "react";
+import ForceGraph from "./components/ForceGraph";
+import { GraphNode, GraphLink } from "./types";
+
+export function Example() {
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  const [data, setData] = useState<{ nodes: GraphNode[]; links: GraphLink[] }>({
+    nodes: [],
+    links: [],
+  });
+
+  useEffect(() => {
+    const onResize = () =>
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    // Replace with real data in production
+    // setData(fetchYourData());
+  }, []);
+
+  return (
+    <ForceGraph
+      width={dimensions.width}
+      height={dimensions.height}
+      data={data}
+      groupCount={8}
+      showLabels
+      onNodeClick={(node) => console.log(node)}
+    />
+  );
+}
+```
+
+### Required vs Optional Props
+
+| Prop | Required | Notes |
+| :--- | :---: | :--- |
+| `width` | ✅ | Must be > 0 |
+| `height` | ✅ | Must be > 0 |
+| `data` | ✅ | Nodes are mutated by D3 directly |
+| `groupCount` | ✅ | Must match node group values |
+| `onNodeClick` | ❌ | Optional interaction hook |
+| `showLabels` | ❌ | Defaults to false |
+
+### Controlled vs Uncontrolled Behavior
+
+**Uncontrolled (default):** Drag & hover state handled internally by D3.
+
+**Controlled:** Node selection is lifted to the parent via `onNodeClick`.
+
+```tsx
+const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+
+<ForceGraph
+  {...props}
+  onNodeClick={setSelectedNode}
+/>;
+```
+
+### Layout & Sizing Requirements (Critical)
+
+The parent container must have **explicit width and height**.
+
+*   **Zero-sized containers** = blank screen
+*   Component does not calculate its own size
+*   SVG layout and positioning are fully D3-driven
+
+✅ **Supported**:
+*   Fullscreen layouts
+*   Fixed-size panels
+*   Responsive containers with explicit dimensions
+
+❌ **Not supported**:
+*   Auto-height containers
+*   Flex children without defined size
+
+### What This Component Does NOT Do
+
+By design:
+*   ❌ Fetch data
+*   ❌ Normalize or validate topology
+*   ❌ Persist state
+*   ❌ Manage routing
+*   ❌ Virtualize nodes (SVG-based)
+
+---
 
 ## Features
 
-- **Force-Directed Physics**: Custom D3 force simulation combining radial gravity, collision detection, and sector-based clustering to eliminate "donut hole" artifacts.
-- **Dynamic Clustering**: Real-time adjustable segmentation (2–20 groups) with automatic data regeneration and layout recalculation.
-- **Interactive UI**:
-  - Drag-and-drop node manipulation.
-  - Hover states for node inspection.
-  - FLIP-like animations for modal transitions (node-to-modal expansion).
-- **Responsive Design**: Auto-resizing canvas based on window dimensions using `ResizeObserver` patterns.
-- **Styling**: Utility-first CSS using Tailwind.
+*   **Force-Directed Physics**: Custom D3 simulation combining radial gravity, collision detection, and sector-based clustering to eliminate "donut-hole" artifacts.
+*   **Dynamic Clustering**: Adjustable segmentation (2–20 groups) with automatic regeneration and layout recalculation.
+*   **Interactive UI**:
+    *   Drag-and-drop node manipulation
+    *   Hover inspection
+    *   FLIP-like modal transitions (node → modal)
+*   **Responsive Design**: Canvas resizes via ResizeObserver-like patterns.
+*   **Styling**: Utility-first CSS using Tailwind.
+
+---
 
 ## Architecture Overview
 
-The application follows a **Unidirectional Data Flow** pattern, orchestrated by the root `App` component.
+Unidirectional data flow orchestrated by `App.tsx`.
 
-1.  **Entry Point**: `index.tsx` mounts the `App` component into the DOM root.
-2.  **Data Generation**: The `App` component acts as the "Smart Container." It generates mock social graph data (Nodes and Links) based on the current `groupCount` and `dimensions`.
+1.  **Entry Point**: `index.tsx` mounts `App` into the DOM.
+2.  **Data Generation**: `App` acts as the smart container generating mock graph data based on `groupCount` and `dimensions`.
 3.  **Rendering**:
-    - `App` passes the raw graph data to `ForceGraph` (Presentation Component).
-    - `ForceGraph` initializes a D3 simulation engine, taking control of the DOM within an `<svg>` element.
-    - The simulation updates node positions (`x`, `y`) on every "tick", modifying the SVG attributes directly for performance.
+    *   `App` passes data to `ForceGraph`.
+    *   `ForceGraph` owns the SVG and D3 simulation.
+    *   D3 mutates node positions directly on every tick.
 4.  **Interaction Loop**:
-    - User interacts (Drag/Click) inside `ForceGraph`.
-    - Events are bubbled up or handled via refs.
-    - Clicking a node triggers state updates in `App`, which renders the React-based Modal overlay.
+    *   User interaction handled inside `ForceGraph`.
+    *   Click events propagate to `App`.
+    *   React controls modal UI only.
+
+---
 
 ## Directory Structure
 
 ```
 /
-├── index.html              # HTML entry point (imports Tailwind & ES Modules)
-├── index.tsx               # React Root
-├── App.tsx                 # Main Container & State Manager
-├── types.ts                # Shared TypeScript Interfaces
-├── constants.ts            # Configuration (Colors, Labels, Limits)
+├── index.html
+├── index.tsx
+├── App.tsx
+├── types.ts
+├── constants.ts
 ├── components/
-│   └── ForceGraph.tsx      # D3 Integration Component
-└── metadata.json           # Project metadata
+│   └── ForceGraph.tsx
+└── metadata.json
 ```
+
+---
 
 ## Installation & Running Locally
 
-Prerequisites: Node.js 18+ and npm/yarn/pnpm.
+Prerequisites: Node.js 18+
 
-1.  **Clone the repository**:
+1.  **Clone**:
     ```bash
     git clone <repository-url>
     cd gravity-graph
     ```
 
-2.  **Install dependencies**:
+2.  **Install**:
     ```bash
     npm install
     ```
 
-3.  **Start Development Server**:
+3.  **Run**:
     ```bash
     npm run dev
     ```
 
-4.  **Build for Production**:
+4.  **Build**:
     ```bash
     npm run build
     ```
 
+---
+
 ## Environment Variables
 
-This project currently relies on hardcoded constants and generated mock data. It does not utilize `.env` files for configuration. API Keys (e.g., for Gemini) are not currently implemented in the runtime code.
+No environment variables are required. All configuration is handled via `constants.ts`.
+
+---
 
 ## Core Concepts
 
 ### Data Model (`types.ts`)
 
-The graph relies on two primary interfaces extending D3's simulation types:
-
 ```typescript
-// Extends d3.SimulationNodeDatum
 interface GraphNode {
   id: string;
-  group: number;      // Determines color and cluster position
-  radius: number;     // Visual size and collision radius
-  x?: number;         // Managed by D3
-  y?: number;         // Managed by D3
-  name: string;       // User profile data
-  bio: string;        // User profile data
-  avatarUrl: string;  // Visual asset
+  group: number;
+  radius: number;
+  x?: number; // Owned by D3
+  y?: number; // Owned by D3
+  name: string;
+  bio: string;
+  avatarUrl: string;
 }
 
-// Extends d3.SimulationLinkDatum
 interface GraphLink {
   source: string | GraphNode;
   target: string | GraphNode;
-  value: number; // 1 = Strong (Intra-group), 0.5 = Weak (Inter-group)
+  value: number;
 }
 ```
+*   `x` / `y` are owned by D3.
+*   Nodes are **mutated directly** for performance.
 
-### Physics & Simulation Strategy
+### Physics Strategy
 
-The `ForceGraph` component implements a specific "Star" gravity layout to organize nodes:
+*   `forceManyBody`: Mild repulsion (`-3`).
+*   `forceCollide`: Radius-based collision preventing overlap.
+*   `forceRadial`: Pulls nodes toward center (kills the "donut-hole" effect).
+*   `forceX` / `forceY`: Sector-based cluster gravity.
 
-1.  **`forceManyBody`**: Negative strength (-3) provides slight repulsion to prevent overlap.
-2.  **`forceCollide`**: Prevents nodes from physically clipping into each other based on radius.
-3.  **`forceRadial`**: **Critical**. A strength of `0.15` pulling towards radius `0` (center). This crushes the "donut hole" often found in radial layouts.
-4.  **`forceX` / `forceY`**: Sector-based positioning. Each group is assigned a "foci" (point in space). Nodes are pulled towards their group's foci to create distinct color wedges.
+---
 
 ## Components
 
 ### `App`
-
-The root orchestrator.
-
-*   **Responsibility**: Data fetching/generation, Layout state, Modal visibility.
-*   **State**:
-    *   `data`: Holds the current topology.
-    *   `groupCount`: Controls the number of clusters (slider input).
-    *   `selectedNode`: Controls the active modal content.
-*   **Performance**: Uses `requestAnimationFrame` for modal opening to ensure DOM readiness for transitions.
+*   **Role**: Orchestrator
+*   Owns graph topology.
+*   Controls cluster count.
+*   Manages modal state.
 
 ### `ForceGraph`
-
-A React wrapper around a D3 simulation.
-
 *   **Location**: `components/ForceGraph.tsx`
-*   **Responsibility**: Rendering the SVG, managing the D3 physics loop, handling drag events.
+*   **Responsibilities**:
+    *   Initialize D3 simulation.
+    *   Render SVG nodes and links.
+    *   Handle drag and click events.
+*   **Performance Notes**:
+    *   React never re-renders nodes (D3 handles DOM updates).
+    *   D3 is the single source of truth for layout.
 
-**Props Interface:**
+---
 
-| Prop | Type | Description |
-| :--- | :--- | :--- |
-| `width` | `number` | Canvas width (px) |
-| `height` | `number` | Canvas height (px) |
-| `data` | `{ nodes: GraphNode[], links: GraphLink[] }` | The graph topology |
-| `onNodeClick` | `(node: GraphNode) => void` | Callback when a node is clicked |
-| `showLabels` | `boolean` | Toggles visibility of group text overlays |
-| `groupCount` | `number` | Used to calculate sector angles for labels |
+## Constants
 
-**Internal Behavior:**
-*   **`useEffect` (Simulation)**: Re-initializes the simulation when `data` or `dimensions` change. It uses `d3.forceSimulation` to mutate `node` objects directly.
-*   **`useEffect` (Labels)**: Manages label DOM elements separately to allow toggling `showLabels` without restarting the expensive physics simulation.
-*   **`tick` Event**: Updates DOM attributes (`cx`, `cy`, `x1`, `y1`) on every frame.
-*   **Label Positioning**: Labels are calculated dynamically based on the centroid of all nodes in a specific group. If a cluster is too close to the center (`dist < 60`), the label is forced outwards to the periphery to maintain readability.
+Located in `constants.ts`:
+*   `COLORS`: 20-color palette (Shade 400).
+*   `GROUP_LABELS`: Human-readable cluster names.
+*   `NODE_COUNT`: Fixed to 450.
+*   `DEFAULT_GROUP_COUNT`: 8.
 
-## Types & Constants
-
-### `constants.ts`
-
-*   **`COLORS`**: Array of hex codes used for node fills.
-*   **`GROUP_LABELS`**: Array of strings mapped to groups (e.g., "Fashion Influence", "Tech Trends").
-*   **`NODE_COUNT`**: Fixed at `450` for generation.
-*   **`DEFAULT_GROUP_COUNT`**: Defaults to `8`.
+---
 
 ## Extending the App
 
-### Adding Real Data
-To replace mock data with an API:
-1.  Modify `App.tsx`: Remove the `useEffect` that generates random data.
-2.  Add an async fetch call to populate `setData`.
-3.  Ensure the API response maps correctly to the `GraphNode` interface in `types.ts`.
+### Replacing Mock Data
+1.  Remove data generation logic from `App.tsx`.
+2.  Fetch real data.
+3.  Map API response to `GraphNode` / `GraphLink`.
 
 ### Modifying Physics
-To change the graph behavior (e.g., to make it explosive rather than implosive):
-1.  Open `components/ForceGraph.tsx`.
-2.  Modify the `.force('charge', ...)` strength to be more negative (e.g., `-30`).
-3.  Remove or reduce `.force('radial', ...)`.
+To make the graph more explosive:
+```javascript
+.force("charge", d3.forceManyBody().strength(-30))
+```
+
+To soften gravity:
+```javascript
+.force("radial", null)
+```
+
+---
 
 ## Performance Considerations
 
-*   **SVG Rendering**: The graph uses SVG `<circle>` and `<line>` elements. This is performant for < 1000 nodes. For > 2000 nodes, consider migrating `ForceGraph` to use HTML5 `<canvas>`.
-*   **Re-rendering**: The `ForceGraph` component uses `useRef` for the SVG element to prevent React from managing the internal nodes, letting D3 handle the high-frequency updates directly.
-*   **Data Regeneration**: Changing the "Segments" slider destroys and recreates the entire graph. This is computationally expensive (O(N^2) for some D3 initialization steps) and causes a visual reset.
+*   **SVG** is performant up to ~1000 nodes.
+*   **> 2000 nodes**: Consider migrating to `<canvas>`.
+*   Regenerating clusters destroys and recreates the simulation (expensive operation).
+
+---
 
 ## Accessibility Notes
 
-*   **Current State**: Partial.
-    *   The "Show Labels" button uses an icon and text.
-    *   The Modal overlay supports click-to-dismiss via backdrop.
-*   **Areas for Improvement**:
-    *   **Keyboard Navigation**: Nodes in the SVG are not currently focusable via `Tab`.
-    *   **Focus Management**: Closing the modal does not return focus to the trigger node.
-    *   **ARIA**: SVG nodes lack `aria-label` or `role="button"`.
+**Current limitations**:
+*   SVG nodes are not keyboard-focusable.
+*   No ARIA roles on nodes.
+*   Focus is not restored after modal close.
+
+---
 
 ## Troubleshooting
 
-| Issue | Possible Cause | Solution |
+| Issue | Possible Cause | Fix |
 | :--- | :--- | :--- |
-| **Graph is a blank white screen** | `data` is null or `width`/`height` are 0. | Check `App.tsx` resize listener and data generation logic. |
-| **Nodes fly off screen** | Forces are unbalanced. | Reduce `charge` strength or increase `radial` strength in `ForceGraph.tsx`. |
-| **Labels overlap nodes** | Centroid calculation is failing. | Check `groupCount` matches actual data groups. See logic in `ForceGraph.tsx` tick function. |
-| **"Donut hole" appears in center** | `d3.forceRadial` is missing or weak. | Ensure `.force('radial', d3.forceRadial(0, ...))` is present. |
+| **Blank screen** | `width` / `height` = 0 | Check parent layout and resize listeners. |
+| **Nodes explode** | Unbalanced forces | Reduce `charge` strength. |
+| **Labels overlap** | Group mismatch | Ensure `groupCount` prop syncs with data. |
+| **Donut hole** | Missing radial force | Restore `.force("radial", ...)` in code. |
+
+---
 
 ## Contributing
 
-1.  **Conventions**:
-    *   **Files**: PascalCase for React Components (`ForceGraph.tsx`), camelCase for logic.
-    *   **Hooks**: All `useEffect` dependencies must be exhaustive.
-    *   **Types**: strict TS mode. No `any`.
+1.  **Files**: PascalCase for components.
+2.  **Hooks**: Exhaustive dependency arrays required.
+3.  **Types**: Strict TS, no `any`.
+4.  **Keep D3 logic isolated** from React rendering.
+5.  **Avoid re-instantiating simulations** unless topology changes.
+6.  **Document new props** in this README under **Components**.
 
-2.  **Adding Components**:
-    *   Create in `components/`.
-    *   Define Props interface immediately above the component.
-    *   Export as `default`.
+### Adding a Component
+*   Create in `components/`.
+*   Define `Props` interface.
+*   Export `default` component.
+
+---
+
+## Design & Implementation Principles
+
+These are **non-negotiable rules** followed by this codebase:
+
+*   **D3 owns layout, React owns UI**.
+*   **Node positions are mutable by design**.
+*   **Performance > React purity**.
+*   **Explicit dimensions over auto-layout**.
+*   **One simulation per graph instance**.
+
+Violating these rules will almost always result in:
+*   Jank / Low FPS.
+*   Memory leaks.
+*   Broken drag behavior.
+*   Unpredictable layouts.
+
+---
+
+## FAQ (Read Before Asking)
+
+### Why are nodes mutated directly?
+Because D3’s force simulation is iterative and performance-sensitive.
+Immutability would introduce unnecessary allocations and Garbage Collection pressure.
+
+### Why SVG and not Canvas?
+SVG provides:
+*   Easier hit-testing.
+*   Native text rendering.
+*   Faster iteration for <1000 nodes.
+
+Canvas is recommended only when scale demands it (>2000 nodes).
+
+### Can this be server-side rendered?
+No. The component depends on:
+*   `window`
+*   `ResizeObserver`-style logic
+*   Imperative DOM access
+
+Use client-only rendering (`'use client'` in Next.js).
+
+### Can this be turned into a reusable library?
+Yes, but requires:
+*   Extracting mock data generation.
+*   Externalizing constants.
+*   Adding a public index export.
+*   Versioning the props API.
+
+---
+
+## Known Limitations
+
+*   No keyboard accessibility for nodes.
+*   No zoom / pan (intentional for this demo).
+*   No incremental graph updates (full regeneration only).
+*   SVG performance ceiling around ~1000 nodes.
+
+---
+
+## Roadmap (Optional)
+
+If this evolves further, logical next steps:
+
+*   Canvas renderer for large datasets.
+*   Zoom / pan with constraints.
+*   Controlled selection API.
+*   Accessibility layer.
+*   Snapshot-based layout persistence.
+
+---
+
+## Ownership
+
+This component is intended to be:
+*   **Integrated**, not forked.
+*   **Extended**, not rewritten.
+*   **Understood**, not treated as a black box.
+
+If you change core physics or lifecycle behavior, document it.
