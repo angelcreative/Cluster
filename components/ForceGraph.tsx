@@ -65,7 +65,7 @@ const ForceGraph: React.FC<ForceGraphProps> = ({ width, height, data, onNodeClic
       )
       // Low repulsion allows nodes to pack tightly into the wedges
       .force('charge', d3.forceManyBody().strength(-3)) 
-      .force('collide', d3.forceCollide((d) => d.radius + 1).strength(1)) 
+      .force('collide', d3.forceCollide<GraphNode>((d) => d.radius + 1).strength(1)) 
       // Global center pull
       .force('center', d3.forceCenter(width / 2, height / 2).strength(0.1))
       // **NEW**: Radial force pulling strictly to the middle to crush any donut hole
