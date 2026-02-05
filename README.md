@@ -1,7 +1,9 @@
 # Cluster Gravity Graph
 
-A high-performance, interactive data visualization built with **React 19**, **TypeScript**, and **D3.js (v7)**.  
+A high-performance, interactive data visualization built with **React 19**, **TypeScript**, **D3.js (v7)**, and **Vite**.  
 It renders a force-directed graph with deterministic clustering, gravity-based physics, and smooth UI transitions designed for dense datasets.
+
+**Build:** The app is bundled with Vite. Dependencies are installed via npm (`node_modules`); there is no browser ESM / importmap—clone, install, and run with the commands below.
 
 ---
 
@@ -144,41 +146,53 @@ Unidirectional data flow orchestrated by `App.tsx`.
 
 ```
 /
-├── index.html
-├── index.tsx
+├── index.html          # Entry HTML; loads app via Vite (/index.tsx)
+├── index.tsx           # React mount
 ├── App.tsx
 ├── types.ts
 ├── constants.ts
+├── package.json
+├── package-lock.json
+├── vite.config.ts
+├── tsconfig.json
+├── .gitignore           # node_modules, dist, etc. (not committed)
 ├── components/
 │   └── ForceGraph.tsx
 └── metadata.json
 ```
 
+`node_modules` is not in the repo; run `npm install` after cloning.
+
 ---
 
 ## Installation & Running Locally
 
-Prerequisites: Node.js 18+
+Prerequisites: **Node.js 18+**. The project uses **Vite**; dependencies live in `node_modules` (install with npm). No ESM CDN or importmap—everything is bundled.
 
 1.  **Clone**:
     ```bash
-    git clone <repository-url>
-    cd gravity-graph
+    git clone https://github.com/angelcreative/Cluster.git
+    cd Cluster
     ```
 
-2.  **Install**:
+2.  **Install dependencies** (creates `node_modules`):
     ```bash
     npm install
     ```
 
-3.  **Run**:
+3.  **Run the dev server** (default: http://localhost:3000):
     ```bash
     npm run dev
     ```
 
-4.  **Build**:
+4.  **Build for production** (output in `dist/`):
     ```bash
     npm run build
+    ```
+
+5.  **Preview production build** (optional):
+    ```bash
+    npm run preview
     ```
 
 ---
@@ -336,6 +350,9 @@ Violating these rules will almost always result in:
 ---
 
 ## FAQ (Read Before Asking)
+
+### Is this ESM / importmap?
+No. This repo uses **Vite** as the build tool. React, React-DOM, and D3 are installed via npm and bundled by Vite. There is no browser importmap or ESM CDN; run `npm install` and `npm run dev` (or `npm run build`) after cloning.
 
 ### Why are nodes mutated directly?
 Because D3’s force simulation is iterative and performance-sensitive.
